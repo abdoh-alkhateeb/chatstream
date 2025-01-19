@@ -7,6 +7,7 @@ import morgan from 'morgan';
 import http from 'http';
 import { Server as SocketServer } from 'socket.io';
 import socketHandler from '../services/socket/socketHandler.js';
+import helmet from 'helmet';
 
 const app = express();
 dotenv.config();
@@ -29,17 +30,11 @@ socketHandler(io);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(morgan('dev'));
+app.use(helmet());
 
 // Database Connection
-if (process.env.NODE_ENV !== 'test') {
-  (async () => {
-    try {
-      await connectDB();
-    } catch (error) {
-      console.error('Error connecting to database:', error.message);
-    }
-  })();
-};
+process.env.NODE_ENV !== 'test' && (await connectDB());
+// await connectDB();
 
 // Global error middleware
 app.use('/api', appRoutes);

@@ -2,8 +2,8 @@ const errorMiddleware = (err, req, res, _) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
-  // Handle specific error types (you can customize these)
-  if (process.env.NODE_ENV === 'development') {
+  // Handle specific error types
+  if (['development', 'test'].includes(process.env.NODE_ENV)) {
     console.error('ERROR 💥:', err);
     return res.status(err.statusCode).json({
       status: err.status,
