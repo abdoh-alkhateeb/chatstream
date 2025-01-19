@@ -22,12 +22,21 @@ interface TypingUser {
   username: string;
 }
 
-export default function ChatRoomPage() {
+export default async function ChatRoomPage() {
   const { roomId } = useParams();
   const [messages, setMessages] = useState<Message[]>([]);
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState<string | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const token = localStorage.getItem("token");
+  const response = await axios.get("/api/v1/auth/me", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  const username = response.data.user.name;
+  const userId = response.data.user._id;
 
   let socket: Socket;
 
@@ -75,7 +84,7 @@ export default function ChatRoomPage() {
 
     const newMessage: IncomingMessage = {
       roomId: roomId as string,
-      senderId: "currentUserId", // TODO
+      senderId: userId,
       message,
       timestamp: new Date().toISOString(),
     };
@@ -85,17 +94,17 @@ export default function ChatRoomPage() {
     setMessages((prev) => [...prev, newMessage]);
     setMessage("");
 
-    socket.emit("stopTyping", { roomId, username: "currentUsername" }); // TODO
+    socket.emit("stopTyping", { roomId, username });
   };
 
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMessage(e.target.value);
 
-    socket.emit("typing", { roomId, username: "currentUsername" }); // TODO
+    socket.emit("typing", { roomId, username });
 
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => {
-      socket.emit("stopTyping", { roomId, username: "currentUsername" }); // TODO
+      socket.emit("stopTyping", { roomId, username });
     }, 2000);
   };
 

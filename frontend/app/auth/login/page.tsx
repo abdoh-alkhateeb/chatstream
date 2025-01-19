@@ -15,6 +15,7 @@ export default function LoginPage() {
 
     try {
       const response = await axios.post("/api/v1/auth/login", { email, password });
+      localStorage.setItem("token", response.data.token);
       alert(response.data.message);
 
       router.push("/chat/rooms");

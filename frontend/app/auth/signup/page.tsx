@@ -16,6 +16,7 @@ export default function SignupPage() {
 
     try {
       const response = await axios.post("/api/v1/auth/signup", { name, email, password });
+      localStorage.setItem("token", response.data.token);
       alert(response.data.message);
 
       router.push("/auth/login");

@@ -66,7 +66,7 @@ UserSchema.pre('save', async function (next) {
 
   try {
     const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(this.password, saltRounds);
+    const hashedPassword = bcrypt.hash(this.password, saltRounds);
     this.password = hashedPassword;
     next();
   } catch (error) {
@@ -76,7 +76,7 @@ UserSchema.pre('save', async function (next) {
 
 // 🔐 Method to validate password
 UserSchema.methods.isValidPassword = async function (password) {
-  return await bcrypt.compare(password, this.password);
+  return bcrypt.compare(password, this.password);
 };
 
 // 🛡️ Indexes
