@@ -285,5 +285,137 @@ describe('Testing auth module', () => {
       expect(response.body.message).toBe('jwt malformed');
       sinon.assert.notCalled(mockUserFindById);
     });
+
+    it('should return 401 if token is not provided', async () => {
+      const response = await request(app)
+        .get('/api/v1/auth/me');
+
+      expect(response.status).toBe(401);
+      expect(response.body.status).toBe('fail');
+      expect(response.body.message).toBe('No token provided');
+      sinon.assert.notCalled(mockUserFindById);
+    });
+
+    it('should return 404 if user is not found', async () => {
+      mockUserFindById.returns({
+        select: sinon.stub().resolves(null),
+      });
+      varifyToken.resolves({ id: null });
+      const token = 'faketoken'; // Assume this is a fake token
+
+      const response = await request(app)
+        .get('/api/v1/auth/me')
+        .set('Authorization', `Bearer ${token}`);
+
+      console.log(response.body);
+      
+      expect(response.status).toBe(404);
+      expect(response.body.status).toBe('fail');
+      expect(response.body.message).toBe('User not found');
+      sinon.assert.calledOnce(mockUserFindById);
+    });
+  });
+
+  describe('POST /logout mocked', () => {
+    beforeEach(() => {
+
+      varifyToken = sinon.stub(jwt, 'verify');
+      // Mock User model methods before each test
+      mockUserFindById = sinon.stub(User, 'findById').returns({
+        select: sinon.stub().returnsThis(),
+      });
+    });
+
+    it('should logout successfully', async() => {
+      const mockUser = {
+        _id: '123456',
+        name: 'John Doe',
+        email: 'john@example.com',
+      };
+      mockUserFindById.returns({
+        select: sinon.stub().resolves(mockUser)
+      });
+      varifyToken.resolves({ id: mockUser._id });
+
+      const token = 'Bearer valid token'; //consider this is valid taken
+
+      const response = await request(app)
+        .post('/api/v1/auth/logout')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.status).toBe('success');
+      expect(response.body.message).toBe('Logged out successfully');
+      sinon.assert.calledOnce(mockUserFindById);
+    });
+
+    it('should return 401 if token is expired', async () => {
+      varifyToken.throws(new jwt.TokenExpiredError('jwt expired', new Date()));
+      const token = 'expired token'; // Assume this is an expired token
+
+      const response = await request(app)
+        .post('/api/v1/auth/logout')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(500);
+      expect(response.body.status).toBe('error');
+      expect(response.body.message).toBe('jwt expired');
+      sinon.assert.notCalled(mockUserFindById);
+    });
+
+    it('should return 500 if token is invalid', async () => {
+      varifyToken.throws(new jwt.JsonWebTokenError('invalid token'));
+      const token = 'invalid token'; // Assume this is an invalid token
+
+      const response = await request(app)
+        .post('/api/v1/auth/logout')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(500);
+      expect(response.body.status).toBe('error');
+      expect(response.body.message).toBe('invalid token');
+      sinon.assert.notCalled(mockUserFindById);
+    });
+
+    it('should return 500 and jwt malformed if token is malformed', async () => {
+      varifyToken.throws(new jwt.JsonWebTokenError('jwt malformed'));
+      const token = 'malformed token'; // Assume this is a malformed token
+
+      const response = await request(app)
+        .post('/api/v1/auth/logout')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(500);
+      expect(response.body.status).toBe('error');
+      expect(response.body.message).toBe('jwt malformed');
+      sinon.assert.notCalled(mockUserFindById);
+    });
+
+    it('should return 401 if token is not provided', async () => {
+      const response = await request(app)
+        .post('/api/v1/auth/logout');
+
+      expect(response.status).toBe(401);
+      expect(response.body.status).toBe('fail');
+      expect(response.body.message).toBe('Not authorized, no token');
+      sinon.assert.notCalled(mockUserFindById);
+    });
+
+    it('should return 401 if user is not found', async () => {
+      mockUserFindById.returns({
+        select: sinon.stub().resolves(null)
+      });
+      varifyToken.resolves({ id: null });
+      const token = 'fake token'; // Assume this is a fake token
+
+      const response = await request(app)
+        .post('/api/v1/auth/logout')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(401);
+      expect(response.body.status).toBe('fail');
+      expect(response.body.message).toBe('User no longer exists');
+      sinon.assert.calledOnce(mockUserFindById);
+    });
   });
 });
