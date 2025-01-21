@@ -74,6 +74,18 @@ describe('Testing auth module', () => {
       sinon.assert.notCalled(mockUserCreate);
     });
 
+    it('should return 400 if email is invalid', async () => {
+      const user = { name: 'John Doe', email: 'invalidemail', password: '123456' };
+
+      const response = await request(app)
+        .post('/api/v1/auth/signup')
+        .send(user);
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toContain('"email" must be a valid email');
+      sinon.assert.notCalled(mockUserCreate);
+    });
+
     it('should return 400 if user already exists', async () => {
       mockUserFind.resolves({
         _id: '123456',
