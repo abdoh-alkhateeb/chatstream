@@ -39,19 +39,22 @@ export const getUserField = catchAsync(async (req, res, next) => {
     return next(new AppError('Field not found', 404));
   }
 
-  res.status(200).json({ status: 'success', data: user.get(field) },);
+  res.status(200).json({ status: 'success', data: user.get(field) });
 });
 
 // 🛠️ Get User by ID
 export const getUserById = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
+  //   if (req.user) {
+  //     res.status(200).json({ status: 'success', data: req.user });
+  //   }
+
   const user = await User.findById(id);
 
   if (!user) {
     return next(new AppError('User not found', 404));
   }
-
   res.status(200).json({ status: 'success', data: user });
 });
 

@@ -20,21 +20,22 @@ const profileUpdateSchema = Joi.object({
   profile_picture: Joi.string().uri().optional(),
 });
 
+// Authorization Function Call for all requests
 router.use(protect);
 
-// 📌 Search Users
+//  Search Users
 router.get('/search', searchUsers);
 
-// 📌 Update User
+//  Update User
 router.route('/:id').patch(updateUser).get(getUserById).delete(deactivateUser);
 
-// 📌 Get Specific User Field
+//  Get Specific User Field
 router.get('/:id/:field', getUserField);
 
-// 📌 Update Password
+//  Update Password
 router.patch('/:id/password', updatePassword);
 
-// 📌 Update User Profile Information
+//  Update User Profile Information
 router.patch('/:id/profile', validate(profileUpdateSchema), updateUserProfile);
 
 export default router;

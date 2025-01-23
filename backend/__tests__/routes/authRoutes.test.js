@@ -6,7 +6,6 @@ import sinon from 'sinon';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-
 describe('Testing auth module', () => {
   let mockUserFind;
   let mockUserCreate;
@@ -75,7 +74,11 @@ describe('Testing auth module', () => {
     });
 
     it('should return 400 if email is invalid', async () => {
-      const user = { name: 'John Doe', email: 'invalidemail', password: '123456' };
+      const user = {
+        name: 'John Doe',
+        email: 'invalidemail',
+        password: '123456',
+      };
 
       const response = await request(app)
         .post('/api/v1/auth/signup')
@@ -120,9 +123,8 @@ describe('Testing auth module', () => {
       });
       sinon.stub(bcrypt, 'compare').resolves(true);
     });
-  
-    it('should login user', async () => {
 
+    it('should login user', async () => {
       const mockUser = {
         _id: '123456',
         name: 'John Doe',
@@ -135,11 +137,9 @@ describe('Testing auth module', () => {
       });
 
       const user = { email: 'john@example.com', password: '123456' };
-  
-      const response = await request(app)
-        .post('/api/v1/auth/login')
-        .send(user);
-  
+
+      const response = await request(app).post('/api/v1/auth/login').send(user);
+
       expect(response.status).toBe(200);
       expect(response.body.status).toBe('success');
       expect(response.body.token).toBeDefined();
@@ -150,9 +150,7 @@ describe('Testing auth module', () => {
     it('should return 400 and password is required if password field is missing', async () => {
       const user = { email: 'john@example.com' };
 
-      const response = await request(app)
-        .post('/api/v1/auth/login')
-        .send(user);
+      const response = await request(app).post('/api/v1/auth/login').send(user);
 
       expect(response.status).toBe(400);
       expect(response.body.errors).toContain('"password" is required');
@@ -162,9 +160,7 @@ describe('Testing auth module', () => {
     it('should return 400 and email is required if email field is missing', async () => {
       const user = { password: '123456' };
 
-      const response = await request(app)
-        .post('/api/v1/auth/login')
-        .send(user);
+      const response = await request(app).post('/api/v1/auth/login').send(user);
 
       expect(response.status).toBe(400);
       expect(response.body.errors).toContain('"email" is required');
@@ -176,12 +172,10 @@ describe('Testing auth module', () => {
       mockUserFind.returns({
         select: sinon.stub().resolves(null),
       });
-    
+
       const user = { email: 'newperson@example.com', password: '123456' };
 
-      const response = await request(app)
-        .post('/api/v1/auth/login')
-        .send(user);
+      const response = await request(app).post('/api/v1/auth/login').send(user);
 
       expect(response.status).toBe(401);
       expect(response.body.status).toBe('fail');
@@ -190,7 +184,6 @@ describe('Testing auth module', () => {
     });
 
     it('should return 401 if password is incorrect', async () => {
-
       const mockUser = {
         _id: '123456',
         name: 'John Doe',
@@ -201,15 +194,13 @@ describe('Testing auth module', () => {
       mockUserFind.returns({
         select: sinon.stub().resolves(mockUser),
       });
-      
+
       // Ensure the bcrypt compare method returns false to simulate incorrect password
       bcrypt.compare.resolves(false);
-      
+
       const user = { email: 'john@example.com', password: 'wrongpassword' };
 
-      const response = await request(app)
-        .post('/api/v1/auth/login')
-        .send(user);
+      const response = await request(app).post('/api/v1/auth/login').send(user);
 
       expect(response.status).toBe(401);
       expect(response.body.status).toBe('fail');
@@ -263,7 +254,7 @@ describe('Testing auth module', () => {
         .set('Authorization', `Bearer ${token}`);
 
       console.log(response.body);
-      
+
       expect(response.status).toBe(500);
       expect(response.body.status).toBe('error');
       expect(response.body.message).toBe('jwt expired');
@@ -299,8 +290,7 @@ describe('Testing auth module', () => {
     });
 
     it('should return 401 if token is not provided', async () => {
-      const response = await request(app)
-        .get('/api/v1/auth/me');
+      const response = await request(app).get('/api/v1/auth/me');
 
       expect(response.status).toBe(401);
       expect(response.body.status).toBe('fail');
@@ -320,7 +310,7 @@ describe('Testing auth module', () => {
         .set('Authorization', `Bearer ${token}`);
 
       console.log(response.body);
-      
+
       expect(response.status).toBe(404);
       expect(response.body.status).toBe('fail');
       expect(response.body.message).toBe('User not found');
@@ -330,7 +320,6 @@ describe('Testing auth module', () => {
 
   describe('POST /logout mocked', () => {
     beforeEach(() => {
-
       varifyToken = sinon.stub(jwt, 'verify');
       // Mock User model methods before each test
       mockUserFindById = sinon.stub(User, 'findById').returns({
@@ -338,14 +327,14 @@ describe('Testing auth module', () => {
       });
     });
 
-    it('should logout successfully', async() => {
+    it('should logout successfully', async () => {
       const mockUser = {
         _id: '123456',
         name: 'John Doe',
         email: 'john@example.com',
       };
       mockUserFindById.returns({
-        select: sinon.stub().resolves(mockUser)
+        select: sinon.stub().resolves(mockUser),
       });
       varifyToken.resolves({ id: mockUser._id });
 
@@ -404,8 +393,7 @@ describe('Testing auth module', () => {
     });
 
     it('should return 401 if token is not provided', async () => {
-      const response = await request(app)
-        .post('/api/v1/auth/logout');
+      const response = await request(app).post('/api/v1/auth/logout');
 
       expect(response.status).toBe(401);
       expect(response.body.status).toBe('fail');
@@ -415,7 +403,7 @@ describe('Testing auth module', () => {
 
     it('should return 401 if user is not found', async () => {
       mockUserFindById.returns({
-        select: sinon.stub().resolves(null)
+        select: sinon.stub().resolves(null),
       });
       varifyToken.resolves({ id: null });
       const token = 'fake token'; // Assume this is a fake token
