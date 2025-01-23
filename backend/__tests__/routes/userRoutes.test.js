@@ -42,7 +42,7 @@ describe('Testing users module', () => {
         password: 'password',
       };
 
-      findUserById.returns({
+      findUserById.returns ({
         select: sinon.stub().resolves(mockedUser),
       });
 
@@ -113,6 +113,8 @@ describe('Testing users module', () => {
     });
   });
 
+
+  // still working on this test
   describe('GET /:id', () => {
     beforeEach(() => {
       varifyToken = sinon.stub(jwt, 'verify');
@@ -144,17 +146,22 @@ describe('Testing users module', () => {
         }
       ];
 
-      // findUserById.returns({
-      //   select: sinon.stub().resolves(mockedUsers[0]),
-      // });
-
-      // Testing the findById method
-      findUserById.callsFake((id) => {
-        console.log('findById called with:', id); // Debug argument
-        return {
+      findUserById
+        .withArgs('1')
+        .onFirstCall()
+        .returns({
           select: sinon.stub().resolves(mockedUsers[0]),
-        };
-      });
+        })
+        .onSecondCall()
+        .resolves(mockedUsers[0]);
+
+      // // Testing the findById method
+      // findUserById.callsFake((id) => {
+      //   console.log('findById called with:', id); // Debug argument
+      //   return {
+      //     select: sinon.stub().resolves(mockedUsers[0]),
+      //   };
+      // });
 
       varifyToken.resolves({ id: mockedUsers[0]._id});
 
@@ -170,7 +177,7 @@ describe('Testing users module', () => {
       expect(response.body.status).toEqual('success');
       expect(response.body.data).toEqual(mockedUsers[0]);
       expect(response.body.data.name).toEqual('John Doe');
-      sinon.assert.calledOnce(findUserById);
+      sinon.assert.calledTwice(findUserById);
     });
 
   });
