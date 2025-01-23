@@ -24,11 +24,13 @@ export const signup = catchAsync(async (req, res, next) => {
   }
 
   // Create new user
-  const newUser = await User.create({
+  const newUser = User({
     name,
     email,
     password,
   });
+
+  await newUser.save({ validateBeforeSave: true });
 
   // Generate JWT token
   try {

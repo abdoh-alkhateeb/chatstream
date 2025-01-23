@@ -1,7 +1,5 @@
-import mongoose from 'mongoose';
+import { Schema, model } from 'mongoose';
 import bcrypt from 'bcrypt';
-
-const { Schema, model } = mongoose;
 
 const UserSchema = new Schema(
   {
@@ -62,11 +60,10 @@ const UserSchema = new Schema(
 
 // 🛡️ Pre-save hook to hash password
 UserSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-
+  if (!this.isModified('password') || !this.isNew) return next();
   try {
     const saltRounds = 10;
-    const hashedPassword = bcrypt.hash(this.password, saltRounds);
+    const hashedPassword = await bcrypt.hash(this.password, saltRounds);
     this.password = hashedPassword;
     next();
   } catch (error) {

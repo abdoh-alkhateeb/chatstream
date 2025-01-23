@@ -3,7 +3,7 @@ import Message from '../models/message/MessageSchema.js';
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
 
-// 🏠 Create a Room
+// Create a Room
 export const createRoom = catchAsync(async (req, res, next) => {
   const { name, type } = req.body;
 
@@ -21,7 +21,7 @@ export const createRoom = catchAsync(async (req, res, next) => {
   res.status(201).json({ status: 'success', data: newRoom });
 });
 
-// 📚 Get All Rooms (User-specific)
+// Get All Rooms (User-specific)
 export const getRoomsByUser = catchAsync(async (req, res) => {
   const rooms = await Room.find({
     participants: req.user._id,
@@ -32,7 +32,7 @@ export const getRoomsByUser = catchAsync(async (req, res) => {
   res.status(200).json({ status: 'success', data: rooms });
 });
 
-// 📚 Get All Rooms
+// Get All Rooms
 export const getAllRooms = catchAsync(async (req, res) => {
   const rooms = await Room.find({})
     .populate('creator', 'name')
@@ -41,7 +41,7 @@ export const getAllRooms = catchAsync(async (req, res) => {
   res.status(200).json({ status: 'success', data: rooms });
 });
 
-// 🏢 Get Room Details
+// Get Room Details
 export const getRoomDetails = catchAsync(async (req, res, next) => {
   const room = await Room.findById(req.params.id)
     .populate('participants', 'name')
@@ -63,25 +63,28 @@ export const getRoomDetails = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: 'success', data: room });
 });
 
-// 🤝 Join a Room
+// Join a Room
 export const joinRoom = catchAsync(async (req, res, next) => {
-  const room = await Room.findById(req.params.id);
+  const { roomId } = req.params;
 
+  const room = await Room.findById(roomId);
   if (!room) {
     return next(new AppError('Room not found', 404));
   }
 
-  if (room.participants.some((part) => part._id.equals(req.user._id))) {
+  // Check if the user is already a participant
+  if (room.participants.some((part) => part.equals(req.user._id))) {
     return next(new AppError('You are already in this room', 400));
   }
 
+  // Add the user to the participants list
   room.participants.push(req.user._id);
   await room.save();
 
   res.status(200).json({ status: 'success', data: room });
 });
 
-// 👋 Leave a Room
+// Leave a Room
 export const leaveRoom = catchAsync(async (req, res, next) => {
   const room = await Room.findById(req.params.id);
 
@@ -93,14 +96,12 @@ export const leaveRoom = catchAsync(async (req, res, next) => {
     (part) => !part._id.equals(req.user._id)
   );
 
-  console.log('🚀 ~ leaveRoom ~ room.participants:', room.participants);
-
   await room.save();
 
   res.status(200).json({ status: 'success', message: 'You left the room' });
 });
 
-// 🗑️ Delete a Room
+// Delete a Room
 export const deleteRoom = catchAsync(async (req, res, next) => {
   const room = await Room.findById(req.params.id);
 
@@ -120,10 +121,10 @@ export const deleteRoom = catchAsync(async (req, res, next) => {
 });
 
 /* -------------------------------- */
-/* 📨 MESSAGE CONTROLLERS */
+/* MESSAGE CONTROLLERS */
 /* -------------------------------- */
 
-// 💬 Send a Message
+// Send a Message
 export const sendMessage = catchAsync(async (req, res, next) => {
   const { content, attachments } = req.body;
   const room = await Room.findById(req.params.roomId);
@@ -151,7 +152,7 @@ export const sendMessage = catchAsync(async (req, res, next) => {
   res.status(201).json({ status: 'success', data: message });
 });
 
-// 📥 Get Messages in a Room
+// Get Messages in a Room
 export const getMessages = catchAsync(async (req, res, next) => {
   const room = await Room.findById(req.params.roomId).populate({
     path: 'messages',
@@ -168,7 +169,7 @@ export const getMessages = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: 'success', data: room.messages });
 });
 
-// 🗑️ Delete a Message
+// Delete a Message
 export const deleteMessage = catchAsync(async (req, res, next) => {
   const { roomId } = req.params;
   const message = await Message.findById(req.params.messageId);

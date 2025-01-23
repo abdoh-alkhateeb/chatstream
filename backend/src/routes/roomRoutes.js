@@ -17,15 +17,16 @@ const router = express.Router();
 
 /* Public Routes */
 
-// 📚 Get All Rooms
-router.get('/', getAllRooms);
 
 /* Protected Routes */
 router.use(protect);
 
+// 📚 Get All Rooms
+router.get('/', getAllRooms);
+
 // 🏠 Room Routes
 router.post('/', createRoom);
-router.get('/', getRoomsByUser);
+router.get('/me', getRoomsByUser);
 router.get('/:id', getRoomDetails);
 router.post('/:id/join', joinRoom);
 router.post('/:id/leave', leaveRoom);

@@ -142,29 +142,30 @@ const socketHandler = (io) => {
     /* -------------------------------- */
 
     // 💬 Send Message
-    socket.on('sendMessage', async ({ roomId, content }) => {
+    socket.on('sendMessage', async ({ roomId, message }) => {
       try {
         const room = await validateRoomAccess(roomId, socket.user._id);
 
-        if (!content) {
+        if (!message) {
           return socket.emit('error', {
             message: 'Message content is required',
           });
         }
 
-        const message = await Message.create({
+        const newMessage = await Message.create({
           senderId: socket.user._id,
-          content,
+          message,
         });
 
-        room.messages.push(message._id);
+        room.messages.push(newMessage._id);
         await room.save();
 
-        io.to(roomId).emit('newMessage', {
+        // Emit the new message to all participants in the room
+        io.to(roomId).emit('receiveMessage', {
           roomId,
           senderId: socket.user._id,
-          content,
-          createdAt: message.createdAt,
+          message,
+          timestamp: newMessage.createdAt,
         });
       } catch (err) {
         console.error('❌ Send Message Error:', err.message);
@@ -194,61 +195,15 @@ const socketHandler = (io) => {
       }
     });
 
-    // 📝 Edit Message
-    socket.on('editMessage', async ({ messageId, content }) => {
-      try {
-        const message = await Message.findById(messageId);
-
-        if (!message || !message.senderId.equals(socket.user._id)) {
-          return socket.emit('error', {
-            message: 'Unauthorized to edit message',
-          });
-        }
-
-        message.content = content;
-        await message.save();
-
-        io.emit('messageEdited', { messageId, content });
-      } catch (err) {
-        console.error('❌ Edit Message Error:', err.message);
-        socket.emit('error', { message: err.message });
-      }
+    // 📝 Typing Events
+    socket.on('typing', ({ roomId, username }) => {
+      // Notify all participants in the room that a user is typing
+      socket.to(roomId).emit('typing', { username });
     });
 
-    socket.on('deleteMessage', async ({ roomId, messageId }) => {
-      try {
-        // Validate message existence and ownership
-        const message = await Message.findById(messageId);
-        if (!message) {
-          return socket.emit('error', { message: 'Message not found' });
-        }
-
-        if (!message.senderId.equals(socket.user._id)) {
-          return socket.emit('error', {
-            message: 'Unauthorized to delete message',
-          });
-        }
-
-        // Remove message reference from the room
-        const room = await Room.findByIdAndUpdate(
-          roomId,
-          { $pull: { messages: messageId } },
-          { new: true }
-        );
-
-        if (!room) {
-          return socket.emit('error', { message: 'Room not found' });
-        }
-
-        // Delete the actual message document
-        await message.deleteOne();
-
-        // Notify all room participants about the deleted message
-        io.to(roomId).emit('messageDeleted', { messageId });
-      } catch (err) {
-        console.error('❌ Delete Message Error:', err.message);
-        socket.emit('error', { message: err.message });
-      }
+    socket.on('stopTyping', ({ roomId, username }) => {
+      // Notify all participants in the room that a user has stopped typing
+      socket.to(roomId).emit('stopTyping', { username });
     });
   });
 };

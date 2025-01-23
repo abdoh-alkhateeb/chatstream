@@ -8,6 +8,7 @@ import http from 'http';
 import { Server as SocketServer } from 'socket.io';
 import socketHandler from '../services/socket/socketHandler.js';
 import helmet from 'helmet';
+import cors from 'cors';
 
 const app = express();
 dotenv.config();
@@ -18,8 +19,9 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 const io = new SocketServer(server, {
   cors: {
-    origin: '*',
+    origin: ['*', 'http://localhost:3000', 'http://[::1]:3000'],
     methods: ['GET', 'POST'],
+    credentials: true,
   },
 });
 
@@ -31,6 +33,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(morgan('dev'));
 app.use(helmet());
+app.use(
+  cors({
+    origin: ['*', 'http://localhost:3000', 'http://[::1]:3000'],
+    methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
+  })
+);
 
 // Database Connection
 process.env.NODE_ENV !== 'test' && (await connectDB());

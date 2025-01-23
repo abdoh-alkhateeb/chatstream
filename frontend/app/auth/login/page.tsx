@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import api from "@/app/axios";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -14,22 +15,62 @@ export default function LoginPage() {
     e.preventDefault();
 
     try {
-      const response = await axios.post("/api/v1/auth/login", { email, password });
+      const response = await api.post("/api/v1/auth/login", { email, password });
       localStorage.setItem("token", response.data.token);
-      alert(response.data.message);
+
+      // Show success toast
+      toast.success(response.data.message || "Login successful!");
 
       router.push("/chat/rooms");
     } catch (error) {
-      alert("Login failed!");
+      // Show error toast
+      toast.error("Login failed!");
     }
   };
 
   return (
-    <form onSubmit={handleLogin} className="max-w-md mx-auto bg-white shadow p-6 rounded">
-      <h1 className="text-xl font-bold mb-4">Login</h1>
-      <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border mb-4 p-2 rounded" />
-      <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border mb-4 p-2 rounded" />
-      <button className="bg-blue-500 text-white py-2 px-4 rounded">Login</button>
-    </form>
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <form onSubmit={handleLogin} className="w-full max-w-md bg-background shadow-lg rounded-lg p-8 border border-foreground/10">
+        <h1 className="text-2xl font-bold text-foreground mb-6 text-center">Login</h1>
+
+        {/* Email Input */}
+        <div className="mb-6">
+          <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
+            Email
+          </label>
+          <input
+            type="email"
+            id="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-2 border border-foreground/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-background text-foreground"
+          />
+        </div>
+
+        {/* Password Input */}
+        <div className="mb-6">
+          <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
+            Password
+          </label>
+          <input
+            type="password"
+            id="password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-2 border border-foreground/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-background text-foreground"
+          />
+        </div>
+
+        {/* Login Button */}
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+        >
+          Login
+        </button>
+      </form>
+    </div>
   );
 }
