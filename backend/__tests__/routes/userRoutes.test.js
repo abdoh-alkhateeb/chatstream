@@ -19,13 +19,12 @@ describe('Testing users module', () => {
   });
 
   afterEach(() => {
-    // Restore all stubs after each test
     sinon.restore();
   });
 
   describe('GET /search', () => {
     beforeEach(() => {
-      varifyToken = sinon.stub(jwt, 'verify');
+      verifyToken = sinon.stub(jwt, 'verify');
       // Mock User model methods before each test
       findUserById = sinon.stub(User, 'findById').returns({
         select: sinon.stub().returnsThis(),
@@ -48,7 +47,7 @@ describe('Testing users module', () => {
 
       findUser.resolves(mockedUser);
 
-      varifyToken.resolves({ id: mockedUser._id });
+      verifyToken.resolves({ id: mockedUser._id });
 
       const token = 'valid token'; // Assume this is a valid token
 
@@ -78,7 +77,7 @@ describe('Testing users module', () => {
 
       findUser.resolves(mockedUser);
 
-      varifyToken.resolves({ id: mockedUser._id });
+      verifyToken.resolves({ id: mockedUser._id });
 
       const token = 'valid token'; // Assume this is a valid token
 
@@ -97,7 +96,7 @@ describe('Testing users module', () => {
     it('should return null array if user not found', async () => {
       findUser.resolves(null);
       
-      varifyToken.resolves({ id: '1' });
+      verifyToken.resolves({ id: '1' });
 
       const token = 'valid token'; // Assume this is a valid token
 
@@ -115,9 +114,9 @@ describe('Testing users module', () => {
 
 
   // still working on this test
-  describe('GET /:id', () => {
+  describe('GET /:id, getting user by ID', () => {
     beforeEach(() => {
-      varifyToken = sinon.stub(jwt, 'verify');
+      verifyToken = sinon.stub(jwt, 'verify');
       findUserById = sinon.stub(User, 'findById').returns({
         select: sinon.stub().returnsThis(),
       });
@@ -146,6 +145,8 @@ describe('Testing users module', () => {
         }
       ];
 
+      verifyToken.returns({ id: mockedUsers[0]._id});
+
       findUserById
         .withArgs('1')
         .onFirstCall()
@@ -155,23 +156,11 @@ describe('Testing users module', () => {
         .onSecondCall()
         .resolves(mockedUsers[0]);
 
-      // // Testing the findById method
-      // findUserById.callsFake((id) => {
-      //   console.log('findById called with:', id); // Debug argument
-      //   return {
-      //     select: sinon.stub().resolves(mockedUsers[0]),
-      //   };
-      // });
-
-      varifyToken.resolves({ id: mockedUsers[0]._id});
-
       const token = 'valid token'; // Assume this is a valid token
 
       const response = await request(app)
         .get('/api/v1/users/1')
         .set('Authorization', `Bearer ${token}`);
-
-      console.log(response.body);
 
       expect(response.status).toBe(200);
       expect(response.body.status).toEqual('success');
@@ -180,5 +169,74 @@ describe('Testing users module', () => {
       sinon.assert.calledTwice(findUserById);
     });
 
+    it('should return User no longer exists ', async () => {
+
+      findUserById
+        .withArgs('1')
+        .onFirstCall()
+        .returns({
+          select: sinon.stub().resolves(null),
+        })
+        .onSecondCall()
+        .resolves(null);
+
+      verifyToken.returns({ id: '1' });
+
+      const token = 'valid token'; // Assume this is a valid token
+
+      const response = await request(app)
+        .get('/api/v1/users/1')
+        .set('Authorization', `Bearer ${token}`);
+
+      console.log(response.body);
+      expect(response.status).toBe(401);
+      expect(response.body.status).toEqual('fail');
+      expect(response.body.message).toEqual('User no longer exists');
+      sinon.assert.calledOnce(findUserById);
+    });
+  });
+
+  describe('PATCH /:id, updating user', () => {
+    beforeEach(() => {
+      verifyToken = sinon.stub(jwt, 'verify');
+      findUserById = sinon.stub(User, 'findById').returns({
+        select: sinon.stub().returnsThis(),
+      });
+      findUserByIdAndUpdate = sinon.stub(User, 'findByIdAndUpdate');
+    });
+
+    // still working on this test
+    // it returns initial user name instead of updated name
+    it('should update user', async () => {
+      const mockedUser = {
+        _id: '1',
+        name: 'John Doe',
+        email: 'johny@gmail.com',
+        password: 'password',
+      };
+
+      findUserById.returns({
+        select: sinon.stub().resolves(mockedUser),
+      });
+      findUserByIdAndUpdate.resolves(mockedUser);
+
+
+      verifyToken.returns({ id: mockedUser._id });
+
+      const token = 'valid token'; // Assume this is a valid token
+
+      const response = await request(app)
+        .patch('/api/v1/users/1')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: 'Youssef' });
+
+      console.log(response.body);
+
+      expect(response.status).toBe(200);
+      expect(response.body.status).toEqual('success');
+      expect(response.body.data).toEqual(mockedUser);
+      expect(response.body.data.name).toEqual('Youssef');
+      sinon.assert.calledOnce(findUserById);
+    });
   });
 });

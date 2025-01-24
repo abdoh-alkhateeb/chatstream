@@ -220,7 +220,7 @@ describe('Testing auth module', () => {
 
   describe('GET /me mocked', () => {
     beforeEach(() => {
-      varifyToken = sinon.stub(jwt, 'verify');
+      verifyToken = sinon.stub(jwt, 'verify');
       // Mock User model methods before each test
       mockUserFindById = sinon.stub(User, 'findById').returns({
         select: sinon.stub().returnsThis(),
@@ -240,7 +240,7 @@ describe('Testing auth module', () => {
         select: sinon.stub().resolves(mockUser),
       });
 
-      varifyToken.resolves({ id: mockUser._id });
+      verifyToken.resolves({ id: mockUser._id });
       const token = 'validtoken'; // Assume this is a valid token
 
       const response = await request(app)
@@ -255,7 +255,7 @@ describe('Testing auth module', () => {
 
     // Check this test
     it('should return 401 if token is expired', async () => {
-      varifyToken.throws(new jwt.TokenExpiredError('jwt expired', new Date()));
+      verifyToken.throws(new jwt.TokenExpiredError('jwt expired', new Date()));
       const token = 'expiredtoken'; // Assume this is an expired token
 
       const response = await request(app)
@@ -271,7 +271,7 @@ describe('Testing auth module', () => {
     });
 
     it('should returnn 500 if token is invalid', async () => {
-      varifyToken.throws(new jwt.JsonWebTokenError('invalid token'));
+      verifyToken.throws(new jwt.JsonWebTokenError('invalid token'));
       const token = 'invalid token'; // Assume this is an invalid token
 
       const response = await request(app)
@@ -285,7 +285,7 @@ describe('Testing auth module', () => {
     });
 
     it('should return 500 and jwt malformed if token is malformed', async () => {
-      varifyToken.throws(new jwt.JsonWebTokenError('jwt malformed'));
+      verifyToken.throws(new jwt.JsonWebTokenError('jwt malformed'));
       const token = 'malformedtoken'; // Assume this is a malformed token
 
       const response = await request(app)
@@ -312,7 +312,7 @@ describe('Testing auth module', () => {
       mockUserFindById.returns({
         select: sinon.stub().resolves(null),
       });
-      varifyToken.resolves({ id: null });
+      verifyToken.resolves({ id: null });
       const token = 'faketoken'; // Assume this is a fake token
 
       const response = await request(app)
@@ -331,7 +331,7 @@ describe('Testing auth module', () => {
   describe('POST /logout mocked', () => {
     beforeEach(() => {
 
-      varifyToken = sinon.stub(jwt, 'verify');
+      verifyToken = sinon.stub(jwt, 'verify');
       // Mock User model methods before each test
       mockUserFindById = sinon.stub(User, 'findById').returns({
         select: sinon.stub().returnsThis(),
@@ -347,7 +347,7 @@ describe('Testing auth module', () => {
       mockUserFindById.returns({
         select: sinon.stub().resolves(mockUser)
       });
-      varifyToken.resolves({ id: mockUser._id });
+      verifyToken.resolves({ id: mockUser._id });
 
       const token = 'Bearer valid token'; //consider this is valid taken
 
@@ -362,7 +362,7 @@ describe('Testing auth module', () => {
     });
 
     it('should return 401 if token is expired', async () => {
-      varifyToken.throws(new jwt.TokenExpiredError('jwt expired', new Date()));
+      verifyToken.throws(new jwt.TokenExpiredError('jwt expired', new Date()));
       const token = 'expired token'; // Assume this is an expired token
 
       const response = await request(app)
@@ -376,7 +376,7 @@ describe('Testing auth module', () => {
     });
 
     it('should return 500 if token is invalid', async () => {
-      varifyToken.throws(new jwt.JsonWebTokenError('invalid token'));
+      verifyToken.throws(new jwt.JsonWebTokenError('invalid token'));
       const token = 'invalid token'; // Assume this is an invalid token
 
       const response = await request(app)
@@ -390,7 +390,7 @@ describe('Testing auth module', () => {
     });
 
     it('should return 500 and jwt malformed if token is malformed', async () => {
-      varifyToken.throws(new jwt.JsonWebTokenError('jwt malformed'));
+      verifyToken.throws(new jwt.JsonWebTokenError('jwt malformed'));
       const token = 'malformed token'; // Assume this is a malformed token
 
       const response = await request(app)
@@ -417,7 +417,7 @@ describe('Testing auth module', () => {
       mockUserFindById.returns({
         select: sinon.stub().resolves(null)
       });
-      varifyToken.resolves({ id: null });
+      verifyToken.resolves({ id: null });
       const token = 'fake token'; // Assume this is a fake token
 
       const response = await request(app)
