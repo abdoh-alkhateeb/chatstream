@@ -239,4 +239,96 @@ describe('Testing users module', () => {
       sinon.assert.calledOnce(findUserById);
     });
   });
+
+  // still working on this test
+  describe('PATCH /:id/profile, updating user profile', () => {
+    beforeEach(() => {
+      verifyToken = sinon.stub(jwt, 'verify');
+      findUserById = sinon.stub(User, 'findById').returns({
+        select: sinon.stub().returnsThis(),
+      });
+
+      findUserByIdAndUpdate = sinon.stub(User, 'findByIdAndUpdate');
+    });
+
+    it('should update user profile', async () => {
+      const mockedUser = {
+        _id: '1',
+        name: 'John Doe',
+        email: 'johny@gmail.com',
+        password: 'password',
+      };
+
+      findUserById.returns({
+        select: sinon.stub().resolves(mockedUser),
+      });
+
+      findUserByIdAndUpdate.resolves(mockedUser);
+
+      verifyToken.returns({ id: mockedUser._id });
+
+      const JWT_SECRET = 'jwtsecret'; // Mock JWT_SECRET
+
+      const token = jwt.sign({ id: mockedUser._id }, JWT_SECRET);
+      console.log(token);
+      const response = await request(app)
+        .patch('/api/v1/users/1/profile')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ bio: 'I am a software engineer' });
+
+      console.log(response.body);
+
+      expect(response.status).toBe(200);
+      expect(response.body.status).toEqual('success');
+      expect(response.body.bio).toEqual('I am a software engineer');
+      sinon.assert.calledOnce(findUserById);
+    });
+  });
+
+
+  // still working on this test
+  describe('PATCH /:id/password, updating user password', () => {
+    beforeEach(() => {
+      verifyToken = sinon.stub(jwt, 'verify');
+      findUserById = sinon.stub(User, 'findById').returns({
+        select: sinon.stub().returnsThis(),
+      });
+      findUserByIdAndUpdate = sinon.stub(User, 'findByIdAndUpdate');
+
+      isMatch = sinon.stub(User, 'isValidPassword');
+    });
+
+    it('should update user password', async () => {
+      const mockedUser = {
+        _id: '1',
+        name: 'John Doe',
+        email: 'johny@gmail.com',
+        password: 'password',
+      };
+
+      findUserById.returns({
+        select: sinon.stub().resolves(mockedUser),
+      });
+
+      findUserByIdAndUpdate.resolves(mockedUser);
+
+      isMatch.resolves(mockedUser.password);
+
+      verifyToken.returns({ id: mockedUser._id });
+
+      const token = 'valid token'; // Assume this is a valid token
+
+      const response = await request(app)
+        .patch('/api/v1/users/1/password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ oldPassword: 'password', newPassword: 'newpassword' });
+
+      console.log(response.body);
+
+      expect(response.status).toBe(200);
+      expect(response.body.status).toEqual('success');
+      expect(response.body.message).toEqual('Password updated successfully');
+      sinon.assert.calledOnce(findUserById);
+    });
+  });
 });

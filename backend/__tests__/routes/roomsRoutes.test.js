@@ -82,49 +82,86 @@ describe('Testing Rooms module', () => {
   });
 
 
-  // // 🏠 Create a Room
-  // // Still working on this test
-  // describe('POST /', () => {
-  //   beforeAll(() => {
-  //     findOne = sinon.stub(User, 'findOne');
-  //     findUser = sinon.stub(Rooms, 'find').returns ({
-  //       populate: sinon.stub().returnsThis(),
-  //     });
-  //     verifyToken = sinon.stub(jwt, 'verify');
-  //     findUserById = sinon.stub(User, 'findById').returns ({
-  //       select: sinon.stub().returnsThis(),
-  //     });
-  //   });
-  //   it('should create a new room', async () => {
-  //     const newRoom = {
-  //       name: 'Room 4',
-  //       type: 'Network',
-  //     };
+  // 🏠 Create a Room
+  // Still working on this test
+  describe('POST /', () => {
+    beforeAll(() => {
+      createRoom = sinon.stub(Rooms, 'create');
+      findOne = sinon.stub(User, 'findOne');
+      findUser = sinon.stub(Rooms, 'find').returns ({
+        populate: sinon.stub().returnsThis(),
+      });
+      verifyToken = sinon.stub(jwt, 'verify');
+      findUserById = sinon.stub(User, 'findById').returns ({
+        select: sinon.stub().returnsThis(),
+      });
+    });
+    it('should create a new room', async () => {
+      const user = {
+        _id: '1',
+        name: 'User 1',
+      };
 
-  //     const user = {
-  //       _id: '1',
-  //       name: 'User 1',
-  //     };
+      const newRoom = {
+        name: 'Room 4',
+        type: 'room',
+        creator: user._id,
+        participants: [user._id],
+      };
 
-  //     jwt.sign = sinon.stub();
-  //     const token = jwt.sign(user, process.env.JWT_SECRET);
+      const token = 'valid token'; // Assume token is valid
+      verifyToken.returns({ id: user._id });
 
-  //     verifyToken.returns(user);
+      createRoom.resolves(newRoom);
 
-  //     findOne.resolves(user);
-  //     findUserById.returns({
-  //       select: sinon.stub().resolves(user),
-  //     });
+      const res = await request(app)
+        .post('/api/v1/rooms')
+        .set('Authorization', `Bearer ${token}`)
+        .send(newRoom);
 
-  //     const res = await request(app)
-  //       .post('/api/v1/rooms')
-  //       .set('Authorization', `Bearer ${token}`)
-  //       .send(newRoom);
+      expect(res.statusCode).toEqual(201);
+      expect(res.body.status).toEqual('success');
+      expect(res.body.data).toMatchObject(newRoom);
+      expect(res.body.data.creator).toEqual(user._id);
+      expect(res.body.data.participants).toContain(user._id);
+      expect(res.body.data.participants).toHaveLength(1);
+      expect(res.body.data.type).toEqual('room');
+      sinon.assert.calledOnce(createRoom);
+      sinon.assert.calledOnce(findUserById);
+    });
 
-  //     expect(res.statusCode).toEqual(201);
-  //     expect(res.body.status).toEqual('success');
-  //     expect(res.body.data).toMatchObject(newRoom);
-  //     sinon.assert.calledOnce(findUserById);
-  //   });
-  // });
+    it('should create a new room', async () => {
+      const user = {
+        _id: '1',
+        name: 'User 1',
+      };
+
+      const newRoom = {
+        name: 'Room 4',
+        type: 'room',
+        creator: user._id,
+        participants: [user._id],
+      };
+
+      const token = 'valid token'; // Assume token is valid
+      verifyToken.returns({ id: user._id });
+
+      createRoom.resolves(newRoom);
+
+      const res = await request(app)
+        .post('/api/v1/rooms')
+        .set('Authorization', `Bearer ${token}`)
+        .send(newRoom);
+
+      expect(res.statusCode).toEqual(201);
+      expect(res.body.status).toEqual('success');
+      expect(res.body.data).toMatchObject(newRoom);
+      expect(res.body.data.creator).toEqual(user._id);
+      expect(res.body.data.participants).toContain(user._id);
+      expect(res.body.data.participants).toHaveLength(1);
+      expect(res.body.data.type).toEqual('room');
+      sinon.assert.calledOnce(createRoom);
+      sinon.assert.calledOnce(findUserById);
+    });
+  });
 });
