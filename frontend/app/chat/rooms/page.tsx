@@ -62,6 +62,8 @@ export default function ChatRoomsPage() {
 
     try {
       const response = await api.post("/api/v1/rooms", { name: newRoomName });
+      console.log("🚀 ~ handleCreateRoom ~ response:", response.data);
+      response.data.data.participants = [{ _id: userId, name: userName }];
       setRooms([...rooms, response.data.data]);
       setNewRoomName("");
       setIsModalOpen(false);
@@ -191,13 +193,13 @@ export default function ChatRoomsPage() {
         {isModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
             <div className="bg-white p-8 rounded-lg">
-              <h2 className="text-xl font-bold">Create a New Room</h2>
+              <h2 className="text-xl text-black font-bold">Create a New Room</h2>
               <input
                 type="text"
                 placeholder="Enter room name"
                 value={newRoomName}
                 onChange={(e) => setNewRoomName(e.target.value)}
-                className="border p-2 w-full mt-4"
+                className="border text-black p-2 w-full mt-4"
               />
               <div className="flex mt-4 gap-4">
                 <button onClick={handleCreateRoom} className="bg-blue-600 text-white py-2 px-4 rounded-lg">

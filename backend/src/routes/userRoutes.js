@@ -13,7 +13,7 @@ import { protect } from '../middlewares/authMiddleware.js';
 import Joi from 'joi';
 import validate from '../middlewares/validateMiddleware.js';
 import { getMe } from '../controllers/authController.js';
-import upload from '../middlewares/upload.js';
+import upload, { ensureUploadsFolder } from '../middlewares/upload.js';
 
 const router = express.Router();
 
@@ -36,7 +36,12 @@ router.get('/:id', getUserById);
 router.route('/me').patch(updateUser).get(getMe).delete(deactivateUser);
 
 // Route to handle profile photo uploads
-router.patch('/photo', upload.single('profile_picture'), uploadProfilePhoto);
+router.patch(
+  '/photo',
+  ensureUploadsFolder,
+  upload.single('profile_picture'),
+  uploadProfilePhoto
+);
 
 //  Get Specific User Field
 router.get('/me/:field', getUserField);

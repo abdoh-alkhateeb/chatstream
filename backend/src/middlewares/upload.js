@@ -1,5 +1,6 @@
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
 
 // Set up storage configuration
 const storage = multer.diskStorage({
@@ -30,3 +31,15 @@ const upload = multer({
 });
 
 export default upload;
+
+// Middleware to ensure "uploads" folder exists at the root of the app
+export const ensureUploadsFolder = (req, res, next) => {
+  const uploadsDir = path.join(process.cwd(), 'uploads'); // Root of the app
+
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true }); // Create folder if it doesn't exist
+    console.log('Uploads folder created at root');
+  }
+
+  next();
+};
