@@ -3,7 +3,7 @@ import axios from "axios";
 import Router from "next/router";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
   headers: {
     "Content-Type": "application/json",
   },
@@ -36,10 +36,6 @@ api.interceptors.response.use(
 
       // Redirect the user to the login page using Next.js Router
       Router.push("/login");
-
-      // Optionally show a toast message
-      // import toast from "react-hot-toast";
-      // toast.error("Session expired. Please log in again.");
     }
     return Promise.reject(error);
   }

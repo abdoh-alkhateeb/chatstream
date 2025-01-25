@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "react-hot-toast";
-import { SocketProvider } from "@/app/context/socketContext";
-import "./globals.css";
+import { SocketProvider } from "@/components/socketContext";
+import "../styles/globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,6 +17,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "ChatStream",
   description: "A real-time chat application where users can join different rooms and exchange messages.",
+  icons: {
+    icon: "/favicon.ico", // Path relative to the `public/` folder
+  },
 };
 
 export default function RootLayout({

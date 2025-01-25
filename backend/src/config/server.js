@@ -19,7 +19,7 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 const io = new SocketServer(server, {
   cors: {
-    origin: ['*', 'http://localhost:3000', 'http://[::1]:3000'],
+    origin: '*',
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -35,9 +35,20 @@ app.use(morgan('dev'));
 app.use(helmet());
 app.use(
   cors({
-    origin: ['*', 'http://localhost:3000', 'http://[::1]:3000'],
+    origin: '*', // Specify allowed origins
     methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
+    credentials: true, // Enable credentials if needed
   })
+);
+app.use(
+  '/uploads',
+  (req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*'); // Allow frontend origin
+    res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+  },
+  express.static('uploads')
 );
 
 // Database Connection

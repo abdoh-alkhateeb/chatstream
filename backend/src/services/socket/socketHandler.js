@@ -2,6 +2,7 @@ import Room from '../../models/room/RoomSchema.js';
 import Message from '../../models/message/MessageSchema.js';
 import { validateRoomAccess } from './roomUtils.js';
 import socketAuthMiddleware from './socketAuthMiddleware.js';
+import User from '../../models/user/UserSchema.js';
 
 const socketHandler = (io) => {
   // Apply Authentication Middleware
@@ -84,9 +85,7 @@ const socketHandler = (io) => {
         }
 
         socket.join(roomId);
-        socket.broadcast
-          .to(roomId)
-          .emit('userJoined', { userId: socket.user._id });
+        socket.to(roomId).emit('userJoined', { userId: socket.user._id });
         console.log(`📥 User ${socket.user.name} joined room ${roomId}`);
       } catch (err) {
         console.error('❌ Join Room Error:', err.message);
@@ -103,9 +102,7 @@ const socketHandler = (io) => {
         }
 
         socket.leave(roomId);
-        socket.broadcast
-          .to(roomId)
-          .emit('userLeft', { userId: socket.user._id });
+        socket.to(roomId).emit('userLeft', { userId: socket.user._id });
         console.log(`📤 User ${socket.user.name} left room ${roomId}`);
       } catch (err) {
         console.error('❌ Leave Room Error:', err.message);
@@ -162,10 +159,10 @@ const socketHandler = (io) => {
 
         // Emit the new message to all participants in the room
         socket.broadcast.to(roomId).emit('receiveMessage', {
-          roomId,
-          senderId: socket.user._id,
-          message,
-          timestamp: newMessage.createdAt,
+          _id: newMessage._id,
+          senderId: { _id: socket.user._id, name: socket.user.name },
+          content: message,
+          createdAt: newMessage.createdAt,
         });
       } catch (err) {
         console.error('❌ Send Message Error:', err.message);
@@ -191,6 +188,28 @@ const socketHandler = (io) => {
         socket.emit('roomMessages', { roomId, messages: room.messages });
       } catch (err) {
         console.error('❌ Get Messages Error:', err.message);
+        socket.emit('error', { message: err.message });
+      }
+    });
+
+    // 📥 Get Messages
+    socket.on('getUser', async ({ userId, socketId }) => {
+      try {
+        const user = await User.findById(userId);
+
+        if (!user) {
+          throw new AppError('User not found', 404);
+        }
+
+        socket.emit('viewUser', {
+          name: user.name,
+          bio: user.profile.bio,
+          profile_photo: user.profile.profile_picture,
+          interests: user.profile.profile_picture,
+        });
+        console.log('view user finished');
+      } catch (err) {
+        console.error('❌ Get User Error:', err.message);
         socket.emit('error', { message: err.message });
       }
     });

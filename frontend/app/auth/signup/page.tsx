@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import api from "@/app/axios";
+import api from "@/utils/axios";
 import toast from "react-hot-toast";
+import { useToken } from "@/components/socketContext";
 
 export default function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  const { setToken } = useToken();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,11 +19,12 @@ export default function SignupPage() {
     try {
       const response = await api.post("/api/v1/auth/signup", { name, email, password });
       localStorage.setItem("token", response.data.token);
+      setToken(response.data.token);
 
       // Show success toast
       toast.success(response.data.message || "Signup successful!");
 
-      router.push("/");
+      router.push("/chat/rooms");
     } catch (error) {
       toast.error("Signup failed!");
     }

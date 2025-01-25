@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import api from "@/app/axios";
+import api from "@/utils/axios";
 import toast from "react-hot-toast";
-import { useSocket } from "./context/socketContext";
+import { useSocket, useToken } from "@/components/socketContext";
 // TODO: Profile page, online status, message sender name
 
 export default function Home() {
@@ -12,6 +12,7 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const socket = useSocket();
+  const { setToken } = useToken();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,6 +20,7 @@ export default function Home() {
     try {
       const response = await api.post("/api/v1/auth/login", { email, password });
       localStorage.setItem("token", response.data.token);
+      setToken(response.data.token);
 
       // Show success toast
       toast.success(response.data.message || "Login successful!");

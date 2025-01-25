@@ -31,7 +31,7 @@ const UserSchema = new Schema(
     ],
     active: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     confirmEmail: {
       type: Boolean,

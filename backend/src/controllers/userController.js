@@ -1,6 +1,7 @@
 import User from '../models/user/UserSchema.js';
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
+import path from 'path';
 
 export const updateUser = catchAsync(async (req, res, next) => {
   const updateData = req.body;
@@ -142,3 +143,39 @@ export const getMe = catchAsync(async (req, res, next) => {
     user,
   });
 });
+
+// Upload Profile Photo Controller
+export const uploadProfilePhoto = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res
+        .status(400)
+        .json({ status: 'error', message: 'No file uploaded' });
+    }
+
+    const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${
+      req.file.filename
+    }`;
+
+    // Update the user's profile with the photo URL
+    const user = await User.findByIdAndUpdate(
+      req.user._id, // Assuming `req.user._id` is set by authentication middleware
+      { 'profile.profile_picture': fileUrl },
+      { new: true, runValidators: true }
+    );
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ status: 'error', message: 'User not found' });
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: { profile_picture: fileUrl },
+    });
+  } catch (error) {
+    console.error('Error uploading profile photo:', error);
+    res.status(500).json({ status: 'error', message: 'Internal server error' });
+  }
+};
