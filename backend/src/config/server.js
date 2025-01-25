@@ -19,7 +19,7 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 const io = new SocketServer(server, {
   cors: {
-    origin: ['*', 'http://localhost:3000', 'http://[::1]:3000'],
+    origin: ['*', 'http://localhost:3000', 'http://[::1]:3000', 'http://localhost:3001', 'http://[::1]:3001'],
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -35,7 +35,7 @@ app.use(morgan('dev'));
 app.use(helmet());
 app.use(
   cors({
-    origin: ['*', 'http://localhost:3000', 'http://[::1]:3000'],
+    origin: ['*', 'http://localhost:3000', 'http://[::1]:3000', 'http://[::1]:3001', 'http://localhost:3001'],
     methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
   })
 );
