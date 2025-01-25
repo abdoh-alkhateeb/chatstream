@@ -35,7 +35,7 @@ app.use(morgan('dev'));
 app.use(helmet());
 app.use(
   cors({
-    origin: '*', // Specify allowed origins
+    origin: '*',
     methods: ['GET', 'POST', 'DELETE', 'PUT', 'PATCH'],
     credentials: true, // Enable credentials if needed
   })
