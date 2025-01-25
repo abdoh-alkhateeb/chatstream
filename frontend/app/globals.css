@@ -34,9 +34,9 @@ body {
 
 .animate-gradient {
   background: linear-gradient(270deg, #3b82f6, #8b5cf6, #3b82f6);
-  background-size: 200% 200%;
+  background-size: 400% 400%; /* Larger background size for smoother animation */
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: gradient 5s ease infinite;
+  animation: gradient 6s ease infinite; /* Smooth infinite animation */
 }

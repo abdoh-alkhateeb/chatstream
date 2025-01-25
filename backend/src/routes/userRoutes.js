@@ -11,6 +11,7 @@ import {
 import { protect } from '../middlewares/authMiddleware.js';
 import Joi from 'joi';
 import validate from '../middlewares/validateMiddleware.js';
+import { getMe } from '../controllers/authController.js';
 
 const router = express.Router();
 
@@ -27,15 +28,15 @@ router.use(protect);
 router.get('/search', searchUsers);
 
 //  Update User
-router.route('/:id').patch(updateUser).get(getUserById).delete(deactivateUser);
+router.route('/me').patch(updateUser).get(getMe).delete(deactivateUser);
 
 //  Get Specific User Field
-router.get('/:id/:field', getUserField);
+router.get('/me/:field', getUserField);
 
 //  Update Password
-router.patch('/:id/password', updatePassword);
+router.patch('/me/password', updatePassword);
 
 //  Update User Profile Information
-router.patch('/:id/profile', validate(profileUpdateSchema), updateUserProfile);
+router.patch('/me/profile', validate(profileUpdateSchema), updateUserProfile);
 
 export default router;

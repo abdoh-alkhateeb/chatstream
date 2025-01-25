@@ -9,7 +9,6 @@ export default function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const router = useRouter();
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -22,17 +21,17 @@ export default function SignupPage() {
       // Show success toast
       toast.success(response.data.message || "Signup successful!");
 
-      router.push("/auth/login");
-    } catch (error: any) {
-      // Show error toast
-      toast.error(error.message || "Signup failed!");
+      router.push("/");
+    } catch (error) {
+      toast.error("Signup failed!");
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <form onSubmit={handleSignup} className="w-full max-w-md bg-background shadow-lg rounded-lg p-8 border border-foreground/10">
-        <h1 className="text-2xl font-bold text-foreground mb-6 text-center">Sign Up</h1>
+        {/* Animated App Name */}
+        <h1 className="text-3xl font-bold animate-gradient text-center mb-6">Chat Stream</h1>
 
         {/* Name Input */}
         <div className="mb-6">
@@ -86,6 +85,14 @@ export default function SignupPage() {
         >
           Sign Up
         </button>
+
+        {/* Link to Login */}
+        <p className="text-center text-sm text-foreground/70 mt-4">
+          Already have an account?{" "}
+          <a href="/" className="text-blue-600 hover:underline">
+            Login
+          </a>
+        </p>
       </form>
     </div>
   );

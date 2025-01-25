@@ -39,7 +39,7 @@ export default function ChatRoomPage() {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      router.push("/auth/login");
+      router.push("/");
     } else {
       const fetchUser = async () => {
         try {
@@ -112,6 +112,9 @@ export default function ChatRoomPage() {
   }, [messages]);
 
   const sendMessage = () => {
+    console.log("Triggered sendMessage");
+    console.log("🚀 ~ sendMessage ~ socket:", socket);
+
     if (!message.trim() || !roomId || !socket) return;
 
     const newMessage: IncomingMessage = {

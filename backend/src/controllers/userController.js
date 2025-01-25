@@ -1,15 +1,11 @@
 import User from '../models/user/UserSchema.js';
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
-import ensureOwnership from '../utils/roleCheck.js';
 
 export const updateUser = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
   const updateData = req.body;
 
-  ensureOwnership(id, req.user._id, next);
-
-  const user = await User.findByIdAndUpdate(id, updateData, {
+  const user = await User.findByIdAndUpdate(req.user._id, updateData, {
     new: true,
     runValidators: true,
   });
@@ -21,7 +17,7 @@ export const updateUser = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: 'success', data: user });
 });
 
-// 🛠️ Get Specific User Field
+// Get Specific User Field
 export const getUserField = catchAsync(async (req, res, next) => {
   const { id, field } = req.params;
 
@@ -42,13 +38,13 @@ export const getUserField = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: 'success', data: user.get(field) });
 });
 
-// 🛠️ Get User by ID
+// Get User by ID
 export const getUserById = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
-  //   if (req.user) {
-  //     res.status(200).json({ status: 'success', data: req.user });
-  //   }
+  if (req.user) {
+    res.status(200).json({ status: 'success', data: req.user });
+  }
 
   const user = await User.findById(id);
 
@@ -58,7 +54,7 @@ export const getUserById = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: 'success', data: user });
 });
 
-// 🛠️ Search Users
+// Search Users
 export const searchUsers = catchAsync(async (req, res, _) => {
   const { query } = req.query;
 
@@ -72,14 +68,11 @@ export const searchUsers = catchAsync(async (req, res, _) => {
   res.status(200).json({ status: 'success', data: users });
 });
 
-// 🛠️ Update User Password
+// Update User Password
 export const updatePassword = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
   const { oldPassword, newPassword } = req.body;
 
-  ensureOwnership(id, req.user._id, next);
-
-  const user = await User.findById(id).select('+password');
+  const user = await User.findById(req.user._id).select('+password');
 
   if (!user) {
     return next(new AppError('User not found', 404));
@@ -98,14 +91,10 @@ export const updatePassword = catchAsync(async (req, res, next) => {
     .json({ status: 'success', message: 'Password updated successfully' });
 });
 
-// 🛠️ Deactivate User Account
+// Deactivate User Account
 export const deactivateUser = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-
-  ensureOwnership(id, req.user._id, next);
-
   const user = await User.findByIdAndUpdate(
-    id,
+    req.user._id,
     { active: false },
     { new: true }
   );
@@ -118,15 +107,10 @@ export const deactivateUser = catchAsync(async (req, res, next) => {
 });
 
 export const updateUserProfile = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-
-  // Authorization: Ensure only the owner can update their profile
-  ensureOwnership(id, req.user._id, next);
-
   const { bio, interests, profile_picture } = req.body;
 
   const user = await User.findByIdAndUpdate(
-    id,
+    req.user._id,
     {
       'profile.bio': bio,
       'profile.interests': interests,
@@ -140,4 +124,21 @@ export const updateUserProfile = catchAsync(async (req, res, next) => {
   }
 
   res.status(200).json({ status: 'success', data: user.profile });
+});
+
+/**
+ * @desc Get Current User
+ * @route GET /auth/me
+ */
+export const getMe = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.user._id).select('-password');
+
+  if (!user) {
+    return next(new AppError('User not found', 404));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    user,
+  });
 });

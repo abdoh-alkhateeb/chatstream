@@ -1,39 +1,44 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, ReactNode } from "react";
+import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { io, Socket } from "socket.io-client";
+import toast from "react-hot-toast";
 
 const SocketContext = createContext<Socket | null>(null);
 
 export const SocketProvider = ({ children }: { children: ReactNode }) => {
-  const socketRef = useRef<Socket | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    // Initialize the socket connection
-    if (!socketRef.current) {
-      socketRef.current = io(process.env.NEXT_PUBLIC_API_URL!, {
-        transports: ["websocket"],
-        auth: { token: localStorage.getItem("token") },
-      });
-    }
-
-    const socket = socketRef.current;
-
-    // Handle connection errors
-    socket.on("connect_error", (err) => {
-      console.error("Socket connection error:", err.message);
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    const newSocket = io(process.env.NEXT_PUBLIC_API_URL!, {
+      transports: ["websocket"],
+      auth: { token },
     });
 
-    // Cleanup on unmount
+    newSocket.on("connect", () => {
+      console.log("Connected to WebSocket server:", newSocket.id);
+    });
+
+    newSocket.on("connect_error", (err) => {
+      console.error("Socket connection error:", err.message);
+      toast.error(err.message || "Failed to connect to the server.");
+    });
+
+    newSocket.on("disconnect", (reason) => {
+      console.log("Disconnected from WebSocket server. Reason:", reason);
+    });
+
+    setSocket(newSocket);
+
     return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
+      newSocket.disconnect();
+      console.log("Disconnected from WebSocket server");
     };
   }, []);
 
-  return <SocketContext.Provider value={socketRef.current}>{children}</SocketContext.Provider>;
+  return <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>;
 };
 
 export const useSocket = () => useContext(SocketContext);

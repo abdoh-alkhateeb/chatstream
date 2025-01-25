@@ -8,7 +8,10 @@ export const validateRoomAccess = async (roomId, userId) => {
     throw new AppError('Room not found', 404);
   }
 
-  if (!room.participants.some((part) => part.equals(userId))) {
+  if (
+    !room.creator.equals(userId) &&
+    !room.participants.some((part) => part._id.equals(userId))
+  ) {
     throw new AppError('You are not a participant in this room', 403);
   }
 

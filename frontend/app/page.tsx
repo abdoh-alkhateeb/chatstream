@@ -1,39 +1,103 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import api from "@/app/axios";
+import toast from "react-hot-toast";
+import { useSocket } from "./context/socketContext";
+// TODO: Profile page, online status, message sender name
 
 export default function Home() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const socket = useSocket();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const response = await api.post("/api/v1/auth/login", { email, password });
+      localStorage.setItem("token", response.data.token);
+
+      // Show success toast
+      toast.success(response.data.message || "Login successful!");
+
+      router.push("/chat/rooms");
+    } catch (error) {
+      // Show error toast
+      toast.error("Login failed!");
+    }
+  };
+
+  useEffect(() => {
+    console.log("socket: ", socket);
+  }, [socket]);
+
+  // if already logged in, redirect to chats
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      if (token) {
+        router.push("/chat/rooms");
+      }
+    }
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        {/* App Name with Gradient and Animation */}
-        <h1 className="text-6xl font-bold mb-4">
-          <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent animate-gradient">Chat Stream</span>
-        </h1>
+      <div className="w-full max-w-md bg-background shadow-lg rounded-lg p-8 border border-foreground/10">
+        {/* App Title */}
+        {/* <h1 className="text-3xl font-bold text-foreground mb-6 text-center">Welcome to Chat Stream</h1> */}
+        <h1 className="text-4xl font-extrabold animate-gradient text-center mb-6">Chat Stream</h1>
+        {/* Login Form */}
+        <form onSubmit={handleLogin} className="mb-4">
+          {/* Email Input */}
+          <div className="mb-4">
+            <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-2 border border-foreground/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-background text-foreground"
+            />
+          </div>
 
-        {/* Subtitle */}
-        <p className="text-lg text-foreground/80 mb-8">Join us to get started or log in to continue your journey.</p>
-
-        {/* Buttons */}
-        <div className="flex gap-4 justify-center">
-          {/* Sign Up Button */}
-          <button
-            onClick={() => router.push("/auth/signup")}
-            className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-          >
-            Sign Up
-          </button>
+          {/* Password Input */}
+          <div className="mb-4">
+            <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-2 border border-foreground/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-background text-foreground"
+            />
+          </div>
 
           {/* Login Button */}
           <button
-            onClick={() => router.push("/auth/login")}
-            className="bg-transparent border border-foreground/20 text-foreground py-2 px-6 rounded-lg hover:bg-foreground/10 focus:outline-none focus:ring-2 focus:ring-foreground/20 focus:ring-offset-2 transition-colors"
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
           >
-            Log In
+            Login
           </button>
-        </div>
+        </form>
+
+        {/* Link to Signup */}
+        <p className="text-center text-sm text-foreground/70">
+          Don't have an account?{" "}
+          <button onClick={() => router.push("/auth/signup")} className="text-blue-600 hover:underline">
+            Sign Up
+          </button>
+        </p>
       </div>
     </div>
   );

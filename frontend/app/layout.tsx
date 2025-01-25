@@ -26,9 +26,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <SocketProvider>{children}</SocketProvider>
-        <Toaster />
+      <body suppressHydrationWarning={true} className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <SocketProvider>
+          {children}
+          <Toaster />
+        </SocketProvider>
       </body>
     </html>
   );

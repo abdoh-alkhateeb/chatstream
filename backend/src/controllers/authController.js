@@ -75,6 +75,9 @@ export const login = catchAsync(async (req, res, next) => {
     return next(new AppError('Invalid credentials', 401));
   }
 
+  user.active = true;
+  await user.save();
+
   // Generate JWT token
   try {
     const token = generateToken(user._id);

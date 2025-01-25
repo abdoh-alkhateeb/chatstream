@@ -161,7 +161,8 @@ export const getMessages = catchAsync(async (req, res, next) => {
 
   if (
     !room ||
-    !room.participants.some((part) => part._id.equals(req.user._id))
+    (!room.creator.equals(req.user._id) &&
+      !room.participants.some((part) => part._id.equals(req.user._id)))
   ) {
     return next(new AppError('Access denied or room not found', 403));
   }

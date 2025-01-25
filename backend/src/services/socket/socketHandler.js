@@ -75,7 +75,8 @@ const socketHandler = (io) => {
     // 🤝 Join Room
     socket.on('joinRoom', async ({ roomId }) => {
       try {
-        const room = await validateRoomAccess(roomId, socket.user._id);
+        const room = await Room.findById(roomId);
+        console.log('🚀 ~ socket.on ~ room:', room, socket.user._id);
 
         if (!room.participants.includes(socket.user._id)) {
           room.participants.push(socket.user._id);
@@ -83,7 +84,9 @@ const socketHandler = (io) => {
         }
 
         socket.join(roomId);
-        io.to(roomId).emit('userJoined', { userId: socket.user._id });
+        socket.broadcast
+          .to(roomId)
+          .emit('userJoined', { userId: socket.user._id });
         console.log(`📥 User ${socket.user.name} joined room ${roomId}`);
       } catch (err) {
         console.error('❌ Join Room Error:', err.message);
@@ -99,13 +102,10 @@ const socketHandler = (io) => {
           return socket.emit('error', { message: 'Room not found' });
         }
 
-        room.participants = room.participants.filter(
-          (part) => !part.equals(socket.user._id)
-        );
-        await room.save();
-
         socket.leave(roomId);
-        io.to(roomId).emit('userLeft', { userId: socket.user._id });
+        socket.broadcast
+          .to(roomId)
+          .emit('userLeft', { userId: socket.user._id });
         console.log(`📤 User ${socket.user.name} left room ${roomId}`);
       } catch (err) {
         console.error('❌ Leave Room Error:', err.message);
@@ -154,14 +154,14 @@ const socketHandler = (io) => {
 
         const newMessage = await Message.create({
           senderId: socket.user._id,
-          message,
+          content: message,
         });
 
         room.messages.push(newMessage._id);
         await room.save();
 
         // Emit the new message to all participants in the room
-        io.to(roomId).emit('receiveMessage', {
+        socket.broadcast.to(roomId).emit('receiveMessage', {
           roomId,
           senderId: socket.user._id,
           message,
